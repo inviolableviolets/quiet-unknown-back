@@ -4,7 +4,7 @@ import { UserRepo } from '../repository/user.m.repository.js';
 import { Controller } from './controller.js';
 import { Sighting } from '../entities/sighting.js';
 import createDebug from 'debug';
-import { Payload } from '../services/auth.js';
+import { PayloadToken } from '../services/auth.js';
 import { ApiResponse } from '../types/api.response.js';
 const debug = createDebug('Quiet:SightingController');
 
@@ -17,7 +17,7 @@ export class SightingController extends Controller<Sighting> {
 
   async post(req: Request, res: Response, next: NextFunction) {
     try {
-      const { id: userId } = req.body.tokenPayload as Payload;
+      const { id: userId } = req.body.tokenPayload as PayloadToken;
       const user = await this.userRepo.queryById(userId);
       delete req.body.tokenPayload;
       req.body.owner = userId;
