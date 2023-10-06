@@ -4,7 +4,7 @@ import { User } from '../entities/user.js';
 import { UserRepo } from '../repository/user.m.repository.js';
 import { Controller } from './controller.js';
 import createDebug from 'debug';
-import { AuthServices, Payload } from '../services/auth.js';
+import { AuthServices, PayloadToken } from '../services/auth.js';
 import { HttpError } from '../types/http.error.js';
 import { LoginResponse } from '../types/api.response.js';
 const debug = createDebug('Quiet:UserController ');
@@ -52,11 +52,11 @@ export class UserController extends Controller<User> {
       if (!isUserValid)
         throw new HttpError(400, 'Bad Request', 'Invalid user or password');
 
-      const payload: Payload = {
+      const payload: PayloadToken = {
         id: data[0].id,
         userName: data[0].userName,
       };
-      const token = AuthServices.createJWT(payload);
+      const token = AuthServices.createToken(payload);
       const response: LoginResponse = {
         token,
         user: data[0],

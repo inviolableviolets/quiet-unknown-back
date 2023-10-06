@@ -1,48 +1,56 @@
-import jsonwebtoken from 'jsonwebtoken';
-import bcryptjs from 'bcryptjs';
-import { AuthServices, Payload } from './auth';
-import { HttpError } from '../types/http.error';
+import { HttpError } from '../types/http.error.js';
+import { AuthServices, PayloadToken } from './auth.js';
+import jwt from 'jsonwebtoken';
+import { compare, hash } from 'bcrypt';
 
 jest.mock('jsonwebtoken');
-jest.mock('bcryptjs');
+jest.mock('bcrypt');
 
-describe('Given an static AuthServices class', () => {
-  describe('When method createJWT is called', () => {
-    const mockPayload = {} as Payload;
-    test('Then sign function should have been called', () => {
-      AuthServices.createJWT(mockPayload);
-      expect(jsonwebtoken.sign).toHaveBeenCalled();
+describe('Given the AuthServices class', () => {
+  describe('When I use createJWT method', () => {
+    test('Then the JWT sign method should be called', () => {
+      const mockPayload = {} as PayloadToken;
+      AuthServices.createToken(mockPayload);
+      expect(jwt.sign).toHaveBeenCalled();
     });
-  });
-  describe('When method verifyJWT is called', () => {
-    const mockTocken = 'test';
-    test('Then verify function should have been called', () => {
-      AuthServices.verifyJWT(mockTocken);
-      expect(jsonwebtoken.verify).toHaveBeenCalled();
+
+    test('When I use verifJWTGettingPayload method', () => {
+      const mockToken = 'token';
+      AuthServices.verifyToken(mockToken);
+      expect(jwt.verify).toHaveBeenCalled();
     });
-  });
-  describe('When method AuthServices.hash is called', () => {
-    const mockValue = 'Test';
-    test('Then hash should have been called', () => {
-      AuthServices.hash(mockValue);
-      expect(bcryptjs.hash).toHaveBeenCalled();
+
+    test('When the result of the jwt.verify function returns a string and gives an error', () => {
+      const mockResult = 'test';
+      const mockToken = 'token';
+      const error = new HttpError(498, 'Invalid Token', mockResult);
+      const mockVerify = (jwt.verify as jest.Mock).mockReturnValueOnce(
+        mockResult
+      );
+      expect(() => AuthServices.verifyToken(mockToken)).toThrow(error);
+      expect(mockVerify).toHaveBeenCalled();
     });
-  });
-  describe('When method AuthServices.compare is called', () => {
-    const mockValue = 'Test';
-    const mockHash = 'Test';
-    test('Then it compare should have been called', () => {
-      AuthServices.compare(mockValue, mockHash);
-      expect(bcryptjs.compare).toHaveBeenCalled();
+
+    test('When I use hash method', async () => {
+      const mockValue = 'password';
+      const mockHashedValue = 'hashedPassword';
+      (hash as jest.Mock).mockResolvedValueOnce(mockHashedValue);
+
+      const result = await AuthServices.hash(mockValue);
+
+      expect(hash).toHaveBeenCalled();
+      expect(result).toBe(mockHashedValue);
     });
-  });
-  describe('When method verifyJWT is called and the type of result is a string', () => {
-    test('Then it should throw an error', () => {
-      const mockToken = 'test';
-      const error = new HttpError(498, 'Invalid Token', 'string');
-      (jsonwebtoken.verify as jest.Mock).mockReturnValueOnce('string');
-      expect(jsonwebtoken.verify).toHaveBeenCalled();
-      expect(() => AuthServices.verifyJWT(mockToken)).toThrow(error);
+
+    test('When I use compare method', async () => {
+      const mockValue = 'password';
+      const mockHashedValue = 'hashedPassword';
+      (compare as jest.Mock).mockResolvedValueOnce(true);
+
+      const result = await AuthServices.compare(mockValue, mockHashedValue);
+
+      expect(compare).toHaveBeenCalled();
+      expect(result).toBe(true);
     });
   });
 });

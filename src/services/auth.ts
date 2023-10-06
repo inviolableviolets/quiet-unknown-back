@@ -1,31 +1,28 @@
-import jsonwebtoken from 'jsonwebtoken';
-import { JwtPayload } from 'jsonwebtoken';
-import bcryptjs from 'bcryptjs';
+import { hash, compare } from 'bcrypt';
+import js from 'jsonwebtoken';
 import { secret } from '../config.js';
 import { HttpError } from '../types/http.error.js';
-const { sign, verify } = jsonwebtoken;
-const { hash, compare } = bcryptjs;
 
-export type Payload = JwtPayload & {
+export type PayloadToken = {
   id: string;
   userName: string;
-};
+} & js.JwtPayload;
 
 export class AuthServices {
   private static salt = 10;
 
-  static createJWT(payload: Payload) {
-    return sign(payload, secret!);
+  static createToken(payload: PayloadToken) {
+    return js.sign(payload, secret!);
   }
 
-  static verifyJWT(token: string) {
+  static verifyToken(token: string) {
     try {
-      const result = verify(token, secret!);
+      const result = js.verify(token, secret!);
       if (typeof result === 'string') {
         throw new HttpError(498, 'Invalid Token', result);
       }
 
-      return result as Payload;
+      return result as PayloadToken;
     } catch (error) {
       throw new HttpError(498, 'Invalid Token', (error as Error).message);
     }

@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { AuthServices, Payload } from '../services/auth';
+import { AuthServices, PayloadToken } from '../services/auth';
 import { AuthInterceptor } from './auth.interceptor';
 import { UserRepo } from '../repository/user.m.repository';
 import { HttpError } from '../types/http.error';
@@ -11,14 +11,16 @@ describe('Given an interceptor', () => {
   describe('When it is instantiated and logged method is called', () => {
     test('Then next should have been called', () => {
       const next = jest.fn() as NextFunction;
-      const mockPayload = {} as Payload;
+      const mockPayload = {} as PayloadToken;
       const req = { body: { tokenPayload: mockPayload } } as Request;
       const res = {} as Response;
       req.get = jest.fn().mockReturnValueOnce('Bearer valid token');
       const mockRepo: UserRepo = {} as unknown as UserRepo;
       const mockSightingRepo: SightingRepo = {} as unknown as SightingRepo;
       const interceptor = new AuthInterceptor(mockRepo, mockSightingRepo);
-      (AuthServices.verifyJWT as jest.Mock).mockResolvedValueOnce(mockPayload);
+      (AuthServices.verifyToken as jest.Mock).mockResolvedValueOnce(
+        mockPayload
+      );
       interceptor.logged(req, res, next);
       expect(next).toHaveBeenCalled();
     });
@@ -26,7 +28,7 @@ describe('Given an interceptor', () => {
   describe('When it is instantiated and authorized method is called', () => {
     test('Then next should have been called', () => {
       const next = jest.fn() as NextFunction;
-      const mockPayload = { id: '1' } as Payload;
+      const mockPayload = { id: '1' } as PayloadToken;
       const req = {
         body: { tokenPayload: mockPayload },
         params: { id: '1' },
@@ -47,14 +49,16 @@ describe('Given an interceptor', () => {
         'Not Authorization header'
       );
       const next = jest.fn() as NextFunction;
-      const mockPayload = {} as Payload;
+      const mockPayload = {} as PayloadToken;
       const req = { body: { tokenPayload: mockPayload } } as Request;
       const res = {} as Response;
       req.get = jest.fn().mockReturnValueOnce(undefined);
       const mockRepo: UserRepo = {} as unknown as UserRepo;
       const mockSightingRepo: SightingRepo = {} as unknown as SightingRepo;
       const interceptor = new AuthInterceptor(mockRepo, mockSightingRepo);
-      (AuthServices.verifyJWT as jest.Mock).mockResolvedValueOnce(mockPayload);
+      (AuthServices.verifyToken as jest.Mock).mockResolvedValueOnce(
+        mockPayload
+      );
       interceptor.logged(req, res, next);
       expect(next).toHaveBeenCalledWith(error);
     });
@@ -67,14 +71,16 @@ describe('Given an interceptor', () => {
         'Not Bearer in Authorization header'
       );
       const next = jest.fn() as NextFunction;
-      const mockPayload = {} as Payload;
+      const mockPayload = {} as PayloadToken;
       const req = { body: { tokenPayload: mockPayload } } as Request;
       const res = {} as Response;
       req.get = jest.fn().mockReturnValueOnce('Not valid token');
       const mockRepo: UserRepo = {} as unknown as UserRepo;
       const mockSightingRepo: SightingRepo = {} as unknown as SightingRepo;
       const interceptor = new AuthInterceptor(mockRepo, mockSightingRepo);
-      (AuthServices.verifyJWT as jest.Mock).mockResolvedValueOnce(mockPayload);
+      (AuthServices.verifyToken as jest.Mock).mockResolvedValueOnce(
+        mockPayload
+      );
       interceptor.logged(req, res, next);
       expect(next).toHaveBeenCalledWith(error);
     });
