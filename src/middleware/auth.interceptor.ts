@@ -2,7 +2,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { HttpError } from '../types/http.error.js';
 import { UserRepo } from '../repository/user.m.repository.js';
-import { AuthServices, Payload } from '../services/auth.js';
+import { AuthServices, PayloadToken } from '../services/auth.js';
 import { Repository } from '../repository/repository.js';
 import { Sighting } from '../entities/sighting.js';
 
@@ -30,7 +30,7 @@ export class AuthInterceptor {
       }
 
       const token = authHeader.slice(7);
-      const payload = AuthServices.verifyJWT(token);
+      const payload = AuthServices.verifyToken(token);
 
       req.body.tokenPayload = payload;
       next();
@@ -49,7 +49,7 @@ export class AuthInterceptor {
         );
       }
 
-      const { id: userId } = req.body.tokenPayload as Payload;
+      const { id: userId } = req.body.tokenPayload as PayloadToken;
       const { id: sightingId } = req.params;
 
       const sighting = await this.sightingRepo.queryById(sightingId);
